@@ -22,18 +22,18 @@ impl Rom {
     }
 
     pub fn get_level(&self, level_name: &RomLevel) -> Level {
-        let (header_offset, block_offset, sprite_offset) =
+        let (header_offset, block_offset, enemy_offset) =
             level_name.get_offsets();
 
         let header_bytes = &self.rom_data[header_offset..];
         let block_bytes = &self.rom_data[block_offset..];
-        let sprite_bytes = &self.rom_data[sprite_offset..];
+        let enemy_bytes = &self.rom_data[enemy_offset..];
 
         let level_header = LevelHeader::from_bytes(header_bytes);
-        let block_data = LevelBlockData::from_bytes(block_bytes);
-        let sprite_data = LevelSpriteData::from_bytes(sprite_bytes);
+        let object_data = LevelObjectData::from_bytes(block_bytes);
+        let enemy_data = LevelEnemyData::from_bytes(enemy_bytes);
 
-        Level { level_header, block_data, sprite_data }
+        Level { level_header, object_data, enemy_data }
     }
 
     fn validate_rom_data(data: &[u8]) -> Result<()> {

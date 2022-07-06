@@ -1,16 +1,16 @@
 #[derive(Debug)]
-pub struct LevelBlockData {
-    pub blocks: Vec<Block>,
+pub struct LevelObjectData {
+    pub objects: Vec<Object>,
 }
 
-impl LevelBlockData {
-    pub fn from_bytes(block_bytes: &[u8]) -> Self {
-        let mut blocks = vec![];
+impl LevelObjectData {
+    pub fn from_bytes(object_bytes: &[u8]) -> Self {
+        let mut objects = vec![];
 
         // process byte-by-byte
         let mut idx = 0;
         loop {
-            let byte = block_bytes[idx];
+            let byte = object_bytes[idx];
             //println!("processing byte: {:x}", byte);
 
             // 0xFD is the end level marker
@@ -22,18 +22,18 @@ impl LevelBlockData {
              * The 2 byte block form looks like:
              * - XXXXYYYY POOOOOOO
              */
-            let block = Block::from_2_bytes(&block_bytes[idx..]);
+            let object = Object::from_bytes(&object_bytes[idx..]);
 
-            blocks.push(block);
+            objects.push(object);
             idx += 2;
         }
 
-        Self { blocks }
+        Self { objects }
     }
 }
 
 #[derive(Debug)]
-pub enum BlockType {
+pub enum ObjectType {
     QuestionBlockPowerup,
     QuestionBlockCoin,
     HiddenBlockCoin,
@@ -78,42 +78,24 @@ pub enum BlockType {
 }
 
 #[derive(Debug)]
-pub struct Block {
-    pub block_type: BlockType,
+pub struct Object {
+    pub object_type: ObjectType,
     pub x_coordinate: u8,
     pub y_coordinate: u8,
     pub new_page_flag: bool,
 }
 
-impl Block {
+impl Object {
     /**
      * XXXXYYYY POOOOOOO
      */
-    pub fn from_2_bytes(bytes: &[u8]) -> Self {
+    pub fn from_bytes(bytes: &[u8]) -> Self {
         assert!(bytes.len() >= 2);
         let x_coordinate = bytes[0] << 4;
         let y_coordinate = bytes[0] & 0b00001111;
-        let block_type = BlockType::CastleAxe;
+        let object_type = ObjectType::CastleAxe;
         let new_page_flag = bytes[1] & 0b10000000 != 0;
 
-        Self { block_type, x_coordinate, y_coordinate, new_page_flag }
+        Self { object_type, x_coordinate, y_coordinate, new_page_flag }
     }
-
-    /*
-    /**
-     * XXXX1111 YYYYOOOO POOOVVVV
-     */
-    pub fn from_3_bytes(bytes: &[u8]) -> Self {
-        assert!(bytes.len() >= 3);
-               // (byte << 4, next_byte << 4)
-        let x_coordinate = bytes[0] << 4;
-        let y_coordinate = bytes[1] << 4;
-        let block_type = BlockType::CastleAxe;
-        let new_page_flag = bytes[2] & 0b10000000 != 0;
-
-        Self {
-            block_type, x_coordinate, y_coordinate, new_page_flag,
-        }
-    }
-    */
 }

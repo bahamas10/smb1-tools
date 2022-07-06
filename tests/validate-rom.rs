@@ -5,7 +5,7 @@ use smb1_tools::*;
 const ROM_DATA: &[u8] =
     include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/smb1.nes"));
 
-/// [(RomLevel, num_blocks)]
+/// [(RomLevel, num_objects)]
 const LEVEL_INFORMATION: &[(RomLevel, usize)] = &[
     (RomLevel::W1_1, 49),
     (RomLevel::W1_2, 80),
@@ -53,15 +53,15 @@ fn test_level_data_valid() -> Result<()> {
     let rom = Rom::new(ROM_DATA.into())?;
 
     // loop each level
-    for (name, num_blocks) in LEVEL_INFORMATION {
+    for (name, num_objects) in LEVEL_INFORMATION {
         let level = rom.get_level(name);
 
-        // ensure number of blocks in level data is accurate
-        let blocks_len = level.block_data.blocks.len();
+        // ensure number of objects in level data is accurate
+        let objects_len = level.object_data.objects.len();
         assert_eq!(
-            &blocks_len, num_blocks,
-            "level {:?} wrong block count: found {} expected {}",
-            name, blocks_len, num_blocks
+            &objects_len, num_objects,
+            "level {:?} wrong object count: found {} expected {}",
+            name, objects_len, num_objects
         );
     }
 

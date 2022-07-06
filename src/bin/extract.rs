@@ -14,7 +14,7 @@ fn main() -> Result<()> {
 
     let level = rom.get_level(&RomLevel::W1_1);
     println!("level = {:#?}", level);
-    println!("blocks.len = {}", level.block_data.blocks.len());
+    println!("blocks.len = {}", level.object_data.objects.len());
 
     Ok(())
 }
