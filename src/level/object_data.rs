@@ -1,28 +1,23 @@
 #[derive(Debug)]
 pub struct LevelObjectData {
-    pub objects: Vec<Object>,
+    pub objects: Vec<LevelObject>,
 }
 
 impl LevelObjectData {
-    pub fn from_bytes(object_bytes: &[u8]) -> Self {
+    pub fn from_bytes(bytes: &[u8]) -> Self {
         let mut objects = vec![];
 
         // process byte-by-byte
         let mut idx = 0;
         loop {
-            let byte = object_bytes[idx];
-            //println!("processing byte: {:x}", byte);
+            let byte = bytes[idx];
 
             // 0xFD is the end level marker
             if byte == 0xFD {
                 break;
             }
 
-            /*
-             * The 2 byte block form looks like:
-             * - XXXXYYYY POOOOOOO
-             */
-            let object = Object::from_bytes(&object_bytes[idx..]);
+            let object = LevelObject::from_bytes(&bytes[idx..]);
 
             objects.push(object);
             idx += 2;
@@ -33,7 +28,7 @@ impl LevelObjectData {
 }
 
 #[derive(Debug)]
-pub enum ObjectType {
+pub enum LevelObjectType {
     QuestionBlockPowerup,
     QuestionBlockCoin,
     HiddenBlockCoin,
@@ -78,14 +73,14 @@ pub enum ObjectType {
 }
 
 #[derive(Debug)]
-pub struct Object {
-    pub object_type: ObjectType,
+pub struct LevelObject {
+    pub kind: LevelObjectType,
     pub x_coordinate: u8,
     pub y_coordinate: u8,
     pub new_page_flag: bool,
 }
 
-impl Object {
+impl LevelObject {
     /**
      * XXXXYYYY POOOOOOO
      */
@@ -93,9 +88,35 @@ impl Object {
         assert!(bytes.len() >= 2);
         let x_coordinate = bytes[0] << 4;
         let y_coordinate = bytes[0] & 0b00001111;
-        let object_type = ObjectType::CastleAxe;
         let new_page_flag = bytes[1] & 0b10000000 != 0;
+        let kind = Self::parse_object_kind(y_coordinate, bytes[1]);
 
-        Self { object_type, x_coordinate, y_coordinate, new_page_flag }
+        Self { kind, x_coordinate, y_coordinate, new_page_flag }
+    }
+
+    fn parse_object_kind(y_coordinate: u8, byte: u8) -> LevelObjectType {
+        // turn off new_page_flag
+        let byte = byte & 0b01111111;
+
+        match (y_coordinate, byte) {
+            (_, 0x00) => LevelObjectType::QuestionBlockPowerup,
+            (_, 0x01) => LevelObjectType::QuestionBlockCoin,
+            (_, 0x02) => LevelObjectType::HiddenBlockCoin,
+            (_, 0x03) => LevelObjectType::HiddenBlockExtraLife,
+            (_, 0x04) => LevelObjectType::BrickPowerup,
+            (_, 0x05) => LevelObjectType::BrickVine,
+            (_, 0x06) => LevelObjectType::BrickStar,
+            (_, 0x07) => LevelObjectType::BrickMultiCoinBlock,
+            (_, 0x08) => LevelObjectType::BrickExtraLife,
+            (_, 0x09) => LevelObjectType::SidewaysPipe,
+            (_, 0x0a) => LevelObjectType::UsedBlock,
+            (_, 0x0b) => LevelObjectType::Spring,
+            (_, 0x0c) => LevelObjectType::DoNotUse,
+            (_, 0x0d) => LevelObjectType::DoNotUse,
+            (_, 0x0e) => LevelObjectType::DoNotUse,
+            (_, 0x0f) => LevelObjectType::DoNotUse,
+            _ => LevelObjectType::DoNotUse,
+            //_ => unreachable!("invalid level object byte: ({}, {})", y_coordinate, byte),
+        }
     }
 }
