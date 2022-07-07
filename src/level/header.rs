@@ -2,112 +2,166 @@
 pub struct LevelHeader {
     //pub header_data: &'a [u8],
     pub time: LevelTime,
-    pub start_y_position: LevelStartYPosition,
+    pub start_position: LevelStartPosition,
+    pub start_autowalk: bool,
     pub background: LevelBackground,
 
     pub scenery: LevelScenery,
+    pub platform: LevelPlatform,
     pub ground: LevelGround,
-    pub structure: LevelStructure,
 }
 
 impl LevelHeader {
-    pub fn from_bytes(header_blocks: &[u8]) -> Self {
-        assert!(header_blocks.len() >= 2);
+    /**
+     *  T T A Y Y B B B   S S P P G G G G
+     *  =================================|===================|
+     *  |_| | |_| |_|_|   |_| |_| |_|_|_|| ground/block      |
+     *   |  |  |    |      |   |     |___| type              |
+     *   |  |  |    |      |   |         |===================|
+     *   |  |  |    |      |   |_________| scenery           |
+     *   |  |  |    |      |             | type              |
+     *   |  |  |    |      |             |===================|
+     *   |  |  |    |      |_____________| platform          |
+     *   |  |  |    |                    |                   |
+     *   |  |  |    |                    |===================|
+     *   |  |  |    |____________________| background/season |
+     *   |  |  |                         | type              |
+     *   |  |  |                         |===================|
+     *   |  |  |_________________________| starting          |
+     *   |  |                            | position          |
+     *   |  |                            |===================|
+     *   |  |____________________________| auto walk         |
+     *   |                               | on/off            |
+     *   |                               |===================|
+     *   |_______________________________| time              |
+     *                                   |                   |
+     *  =====================================================|
+     */
+    pub fn from_bytes(bytes: &[u8]) -> Self {
+        assert!(bytes.len() >= 2);
 
-        let time = Self::parse_level_time(header_blocks[0]);
-        let start_y_position = Self::parse_level_y_position(header_blocks[0]);
-        let background = Self::parse_level_background(header_blocks[0]);
+        // first byte
+        let time = Self::parse_level_time(bytes);
+        let start_position = Self::parse_level_start_position(bytes);
+        let start_autowalk = Self::parse_level_start_autowalk(bytes);
+        let background = Self::parse_level_background(bytes);
 
-        let scenery = Self::parse_level_scenery(header_blocks[1]);
-        let ground = Self::parse_level_ground(header_blocks[1]);
-        let structure = Self::parse_level_structure(header_blocks[1]);
+        // second byte
+        let scenery = Self::parse_level_scenery(bytes);
+        let platform = Self::parse_level_platform(bytes);
+        let ground = Self::parse_level_ground(bytes);
 
-        Self { time, start_y_position, background, scenery, ground, structure }
+        Self {
+            time,
+            start_position,
+            start_autowalk,
+            background,
+            scenery,
+            platform,
+            ground,
+        }
     }
 
-    fn parse_level_time(byte: u8) -> LevelTime {
-        let t = (byte & 0b11000000) >> 6;
+    /// TTxxxxxx xxxxxxxx
+    fn parse_level_time(bytes: &[u8]) -> LevelTime {
+        let t = (bytes[0] & 0b11000000) >> 6;
         match t {
             0b00 => LevelTime::NotSet,
             0b01 => LevelTime::T400,
             0b10 => LevelTime::T300,
             0b11 => LevelTime::T200,
-            _ => unreachable!("invalid level time byte: {}", byte),
+            _ => unreachable!("invalid level time byte: {}", bytes[0]),
         }
     }
 
-    fn parse_level_y_position(byte: u8) -> LevelStartYPosition {
-        let t = (byte & 0b00111000) >> 3;
+    /// xxAxxxxx xxxxxxxx
+    fn parse_level_start_autowalk(bytes: &[u8]) -> bool {
+        let t = (bytes[0] & 0b00100000) >> 5;
         match t {
-            0b000 => LevelStartYPosition::FallFromSky,
-            0b001 => LevelStartYPosition::WhatIsThis,
-            0b010 => LevelStartYPosition::StartOnGround,
-            0b011 => LevelStartYPosition::HalfwayOffGround,
-            0b100 => LevelStartYPosition::FallFromSky,
-            0b101 => LevelStartYPosition::FallFromSky,
-            0b110 => LevelStartYPosition::AutowalkOnGround,
-            0b111 => LevelStartYPosition::AutowalkOnGround,
-            _ => unreachable!("invalid level start y position byte: {}", byte),
+            0b0 => false,
+            0b1 => true,
+            _ => {
+                unreachable!("invalid level start autowalk byte: {}", bytes[0])
+            }
         }
     }
 
-    fn parse_level_background(byte: u8) -> LevelBackground {
-        let t = byte & 0b00000111;
+    /// xxxYYxxx xxxxxxxx
+    fn parse_level_start_position(bytes: &[u8]) -> LevelStartPosition {
+        let t = (bytes[0] & 0b00011000) >> 3;
         match t {
-            0b000 => LevelBackground::Nothing,
-            0b001 => LevelBackground::WaterTilesets,
-            0b010 => LevelBackground::Unknown,
-            0b011 => LevelBackground::OverWater,
-            0b100 => LevelBackground::Unknown,
-            0b101 => LevelBackground::Unknown,
-            0b110 => LevelBackground::Unknown,
-            0b111 => LevelBackground::Unknown,
-            _ => unreachable!("invalid level background byte: {}", byte),
+            //XXX this probably isn't right
+            0b00 => LevelStartPosition::FallFromSky,
+            0b01 => LevelStartPosition::StartOnGround,
+            0b10 => LevelStartPosition::FallFromSky,
+            0b11 => LevelStartPosition::HalfwayOffGround,
+            _ => {
+                unreachable!("invalid level start position byte: {}", bytes[0])
+            }
         }
     }
 
-    fn parse_level_scenery(byte: u8) -> LevelScenery {
-        let t = (byte & 0b11000000) >> 6;
+    /// xxxxxBBB xxxxxxxx
+    fn parse_level_background(bytes: &[u8]) -> LevelBackground {
+        let t = bytes[0] & 0b00000111;
+        match t {
+            0b000 => LevelBackground::DayTime,
+            0b001 => LevelBackground::Underwater,
+            0b010 => LevelBackground::CastleWall,
+            0b011 => LevelBackground::Overwater,
+            0b100 => LevelBackground::NightTime,
+            0b101 => LevelBackground::DayTimeSnow,
+            0b110 => LevelBackground::NightTimeSnow,
+            0b111 => LevelBackground::BlackAndWhite,
+            _ => unreachable!("invalid level background byte: {}", bytes[0]),
+        }
+    }
+
+    /// xxxxxxxx PPxxxxxx
+    fn parse_level_platform(bytes: &[u8]) -> LevelPlatform {
+        let t = (bytes[1] & 0b11000000) >> 6;
+        match t {
+            0b00 => LevelPlatform::GreenAndTrees,
+            0b01 => LevelPlatform::OrangeAndMushrooms,
+            0b10 => LevelPlatform::BulletBills,
+            0b11 => LevelPlatform::Clouds,
+            _ => unreachable!("invalid level platform byte: {}", bytes[1]),
+        }
+    }
+
+    /// xxxxxxxx xxSSxxxx
+    fn parse_level_scenery(bytes: &[u8]) -> LevelScenery {
+        let t = (bytes[1] & 0b00110000) >> 4;
         match t {
             0b00 => LevelScenery::Nothing,
             0b01 => LevelScenery::Clouds,
             0b10 => LevelScenery::Mountains,
             0b11 => LevelScenery::Fence,
-            _ => unreachable!("invalid level scenery byte: {}", byte),
+            _ => unreachable!("invalid level scenery byte: {}", bytes[1]),
         }
     }
 
-    fn parse_level_ground(byte: u8) -> LevelGround {
-        let t = (byte & 0b00110000) >> 4;
+    /// xxxxxxxx xxxxGGGG
+    fn parse_level_ground(bytes: &[u8]) -> LevelGround {
+        let t = bytes[1] & 0b00001111;
         match t {
-            0b00 => LevelGround::GreenAndTrees,
-            0b01 => LevelGround::OrangeAndMushrooms,
-            0b10 => LevelGround::BulletMachines,
-            0b11 => LevelGround::Clouds,
-            _ => unreachable!("invalid level ground byte: {}", byte),
-        }
-    }
-
-    fn parse_level_structure(byte: u8) -> LevelStructure {
-        let t = byte & 0b00001111;
-        match t {
-            0b0000 => LevelStructure::Nothing,
-            0b0001 => LevelStructure::BasicFloor,
-            0b0010 => LevelStructure::BasicFloorAndCeiling,
-            0b0011 => LevelStructure::BasicFloorAndThreeLayerCeiling,
-            0b0100 => LevelStructure::BasicFloorAndFourLayerCeiling,
-            0b0101 => LevelStructure::BasicFloorAndEightLayerCeiling,
-            0b0110 => LevelStructure::FiveLayerFloorAndCeiling,
-            0b0111 => LevelStructure::FiveLayerFloorAndThreeLayerCeiling,
-            0b1000 => LevelStructure::FiveLayerFloorAndFourLayerCeiling,
-            0b1001 => LevelStructure::SixLayerFloorAndCeiling,
-            0b1010 => LevelStructure::Ceiling,
-            0b1011 => LevelStructure::SixLayerFloorAndFourLayerCeiling,
-            0b1100 => LevelStructure::NineLayerFloorAndCeiling,
-            0b1101 => LevelStructure::BasicFloorThreeLayerGapFiveLayerBricksTwoLayerGapAndCeiling,
-            0b1110 => LevelStructure::BasicFloorThreeLayerGapFourLayerBricksThreeLayerGapAndCeiling,
-            0b1111 => LevelStructure::All,
-            _ => unreachable!("invalid level structure byte: {}", byte),
+            0b0000 => LevelGround::Nothing,
+            0b0001 => LevelGround::BasicFloor,
+            0b0010 => LevelGround::BasicFloorAndCeiling,
+            0b0011 => LevelGround::BasicFloorAndThreeLayerCeiling,
+            0b0100 => LevelGround::BasicFloorAndFourLayerCeiling,
+            0b0101 => LevelGround::BasicFloorAndEightLayerCeiling,
+            0b0110 => LevelGround::FiveLayerFloorAndCeiling,
+            0b0111 => LevelGround::FiveLayerFloorAndThreeLayerCeiling,
+            0b1000 => LevelGround::FiveLayerFloorAndFourLayerCeiling,
+            0b1001 => LevelGround::SixLayerFloorAndCeiling,
+            0b1010 => LevelGround::Ceiling,
+            0b1011 => LevelGround::SixLayerFloorAndFourLayerCeiling,
+            0b1100 => LevelGround::NineLayerFloorAndCeiling,
+            0b1101 => LevelGround::BasicFloorThreeLayerGapFiveLayerBricksTwoLayerGapAndCeiling,
+            0b1110 => LevelGround::BasicFloorThreeLayerGapFourLayerBricksThreeLayerGapAndCeiling,
+            0b1111 => LevelGround::All,
+            _ => unreachable!("invalid level structure byte: {}", bytes[1]),
         }
     }
 }
@@ -121,20 +175,22 @@ pub enum LevelTime {
 }
 
 #[derive(Debug)]
-pub enum LevelStartYPosition {
+pub enum LevelStartPosition {
     FallFromSky,
-    WhatIsThis,
     StartOnGround,
     HalfwayOffGround,
-    AutowalkOnGround,
 }
 
 #[derive(Debug)]
 pub enum LevelBackground {
-    Nothing,
-    WaterTilesets,
-    OverWater,
-    Unknown,
+    DayTime,
+    Underwater,
+    CastleWall,
+    Overwater,
+    NightTime,
+    DayTimeSnow,
+    NightTimeSnow,
+    BlackAndWhite,
 }
 
 #[derive(Debug)]
@@ -146,15 +202,15 @@ pub enum LevelScenery {
 }
 
 #[derive(Debug)]
-pub enum LevelGround {
+pub enum LevelPlatform {
     GreenAndTrees,
     OrangeAndMushrooms,
-    BulletMachines,
+    BulletBills,
     Clouds,
 }
 
 #[derive(Debug)]
-pub enum LevelStructure {
+pub enum LevelGround {
     Nothing,
     BasicFloor,
     BasicFloorAndCeiling,
