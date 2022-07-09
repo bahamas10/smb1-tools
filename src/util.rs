@@ -1,11 +1,60 @@
 /**
  * Create an enum that maps to and from the given value.
  *
+ * ```
+ * use smb1_tools::enum_mapped;
+ *
+ * enum_mapped!(
+ *     MyCoolEnum (u32) {
+ *         12 => Foo,
+ *         13 => Bar,
+ *         57 => Baz,
+ *     }
+ * );
+ * ```
+ *
+ * Is functionally equivalent to:
+ *
+ * ```
+ * #[derive(Debug)]
+ * enum MyCoolEnum {
+ *     Foo,
+ *     Bar,
+ *     Baz,
+ * }
+ *
+ * impl MyCoolEnum {
+ *     pub fn new(val: u32) -> Self {
+ *         match val {
+ *             12 => Self::Foo,
+ *             13 => Self::Bar,
+ *             57 => Self::Baz,
+ *             _ => panic!("invalid {} val: {:?}", "MyCoolEnum", val),
+ *         }
+ *     }
+ *
+ *     pub fn value(&self) -> u32 {
+ *         match self {
+ *             Self::Foo => 12,
+ *             Self::Bar => 13,
+ *             Self::Baz => 57,
+ *         }
+ *     }
+ * }
+ *
+ * impl PartialEq for MyCoolEnum {
+ *     fn eq(&self, other: &Self) -> bool {
+ *         self.value() == other.value()
+ *     }
+ * }
+ * impl Eq for MyCoolEnum {}
+ * ```
  */
+#[macro_export]
 macro_rules! enum_mapped {
-    ($name:ident ($type:ty) { $($val:expr => $variant:ident,)* } ) => {
+    ($v:vis $name:ident ($type:ty) { $($val:expr => $variant:ident,)* } ) => {
         #[derive(Debug)]
-        pub enum $name {
+        $v enum $name {
             $(
                 $variant,
             )*
@@ -16,7 +65,7 @@ macro_rules! enum_mapped {
             pub fn new(val: $type) -> Self {
                 match val {
                     $(
-                        $val => $name::$variant,
+                        $val => Self::$variant,
                     )*
                     _ => panic!("invalid {} val: {:?}", stringify!($name), val),
                 }
@@ -44,7 +93,7 @@ pub(crate) use enum_mapped;
 
 #[cfg(test)]
 mod tests {
-    use super::enum_mapped;
+    use super::*;
 
     enum_mapped!(
         MyNumberEnum (u32) {

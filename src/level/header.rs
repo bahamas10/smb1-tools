@@ -108,7 +108,7 @@ impl LevelHeader {
 }
 
 enum_mapped!(
-    LevelStartPosition (u8) {
+    pub LevelStartPosition (u8) {
         0b00 => FallFromSky,
         0b01 => StartOnGround,
         0b10 => FallFromSkyAlternate,
@@ -117,7 +117,7 @@ enum_mapped!(
 );
 
 enum_mapped!(
-    LevelTime (u8) {
+    pub LevelTime (u8) {
         0b00 => NotSet,
         0b01 => T400,
         0b10 => T300,
@@ -126,7 +126,7 @@ enum_mapped!(
 );
 
 enum_mapped!(
-    LevelBackground (u8) {
+    pub LevelBackground (u8) {
         0b000 => DayTime,
         0b001 => Underwater,
         0b010 => CastleWall,
@@ -139,7 +139,7 @@ enum_mapped!(
 );
 
 enum_mapped!(
-    LevelScenery (u8) {
+    pub LevelScenery (u8) {
         0b00 => Nothing,
         0b01 => Clouds,
         0b10 => Mountains,
@@ -148,7 +148,7 @@ enum_mapped!(
 );
 
 enum_mapped!(
-    LevelPlatform (u8) {
+    pub LevelPlatform (u8) {
         0b00 => GreenAndTrees,
         0b01 => OrangeAndMushrooms,
         0b10 => BulletBills,
@@ -157,7 +157,7 @@ enum_mapped!(
 );
 
 enum_mapped!(
-    LevelGround (u8) {
+    pub LevelGround (u8) {
         0b0000 => Nothing,
         0b0001 => BasicFloor,
         0b0010 => BasicFloorAndCeiling,
