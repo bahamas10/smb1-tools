@@ -13,7 +13,7 @@ fn main() -> Result<()> {
     let rom = Rom::new(rom_data)?;
 
     let level = rom.get_level(&RomLevel::W1_1);
-    println!("level = {:#?}", level);
+    println!("{:#?}", level);
     println!("objects.len = {}", level.object_data.objects.len());
     println!("enemies.len = {}", level.enemy_data.enemies.len());
 

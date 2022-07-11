@@ -1,3 +1,7 @@
+/*!
+ * Various util functions for smb1 tool.
+ */
+
 /**
  * Create an enum that maps to and from the given value.
  *

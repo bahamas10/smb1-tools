@@ -13,7 +13,6 @@ impl LevelEnemyData {
         let mut idx = 0;
         loop {
             let byte = bytes[idx];
-            println!("processing byte {}: {:x}", idx, byte);
 
             // 0xFF is the end enemy marker
             if byte == 0xFF {

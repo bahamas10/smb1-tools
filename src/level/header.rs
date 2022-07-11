@@ -15,6 +15,8 @@ pub struct LevelHeader {
 
 impl LevelHeader {
     /**
+     * From: https://www.romhacking.net/documents/76/
+     *
      *  T T A Y Y B B B   S S P P G G G G
      *  =================================|===================|
      *  |_| | |_| |_|_|   |_| |_| |_|_|_|| ground/block      |
