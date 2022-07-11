@@ -67,10 +67,8 @@ Credits and Documentation Used
 ------------------------------
 
 - [Super Mario Bros. Hacking Document](https://www.romhacking.net/documents/76/)
-- [Super Mario Bros. Level Generation Using
-- Torch-RNN](https://medium.com/@justin_michaud/super-mario-bros-level-generation-using-torch-rnn-726ddea7e9b7)
-- [SMB1 Level Format (All
-- Stars)](https://github.com/bonimy/MushROMs/blob/master/doc/SMB1%20Level%20Format.md)
+- [Super Mario Bros. Level Generation Using - Torch-RNN](https://medium.com/@justin_michaud/super-mario-bros-level-generation-using-torch-rnn-726ddea7e9b7)
+- [SMB1 Level Format (All - Stars)](https://github.com/bonimy/MushROMs/blob/master/doc/SMB1%20Level%20Format.md)
 
 License
 -------
