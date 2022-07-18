@@ -35,7 +35,7 @@ impl LevelEnemyData {
 }
 
 #[derive(Debug)]
-pub enum LevelEnemyType {
+pub enum LevelEnemyKind {
     QuestionBlockPowerup,
     QuestionBlockCoin,
     HiddenBlockCoin,
@@ -81,7 +81,7 @@ pub enum LevelEnemyType {
 
 #[derive(Debug)]
 pub struct LevelEnemy {
-    pub kind: LevelEnemyType,
+    pub kind: LevelEnemyKind,
     pub x_coordinate: u8,
     pub y_coordinate: u8,
     pub new_page_flag: bool,
@@ -92,7 +92,7 @@ impl LevelEnemy {
         assert!(bytes.len() >= 2);
         let x_coordinate = bytes[0] << 4;
         let y_coordinate = bytes[0] & 0b00001111;
-        let kind = LevelEnemyType::CastleAxe;
+        let kind = LevelEnemyKind::CastleAxe;
         let new_page_flag = bytes[1] & 0b10000000 != 0;
 
         Self { kind, x_coordinate, y_coordinate, new_page_flag }

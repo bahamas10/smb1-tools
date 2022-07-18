@@ -29,7 +29,7 @@ impl LevelObjectData {
 
 #[derive(Debug)]
 pub struct LevelObject {
-    pub kind: LevelObjectType,
+    pub kind: LevelObjectKind,
     pub x_coordinate: u8,
     pub y_coordinate: u8,
     pub new_page_flag: bool,
@@ -49,15 +49,15 @@ impl LevelObject {
         Self { kind, x_coordinate, y_coordinate, new_page_flag }
     }
 
-    fn parse_object_kind(bytes: &[u8]) -> LevelObjectType {
+    fn parse_object_kind(bytes: &[u8]) -> LevelObjectKind {
         let y_coordinate = bytes[0] & 0b00001111;
         let byte = bytes[1] & 0b01111111;
-        LevelObjectType::new(y_coordinate, byte)
+        LevelObjectKind::new(y_coordinate, byte)
     }
 }
 
 #[derive(Debug)]
-pub enum LevelObjectType {
+pub enum LevelObjectKind {
     QuestionBlockPowerup,
     QuestionBlockCoin,
     HiddenBlockCoin,
@@ -101,7 +101,7 @@ pub enum LevelObjectType {
     Invalid,
 }
 
-impl LevelObjectType {
+impl LevelObjectKind {
     pub fn new(y_coordinate: u8, byte: u8) -> Self {
         let _high_nibble = byte >> 4 & 0x0f;
         let low_nibble = byte & 0x0f;
