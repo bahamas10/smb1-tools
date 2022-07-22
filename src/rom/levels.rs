@@ -37,6 +37,44 @@ pub enum RomLevel {
 }
 
 impl RomLevel {
+    pub fn from_name(name: &str) -> Self {
+        match name {
+            "1-1" => Self::W1_1,
+            "1-2" => Self::W1_2,
+            "1-3" => Self::W1_3,
+            "1-4" => Self::W1_4,
+            "2-1" => Self::W2_1,
+            "2-2" => Self::W2_2,
+            "2-3" => Self::W2_3,
+            "2-4" => Self::W2_4,
+            "3-1" => Self::W3_1,
+            "3-2" => Self::W3_2,
+            "3-3" => Self::W3_3,
+            "3-4" => Self::W3_4,
+            "4-1" => Self::W4_1,
+            "4-2" => Self::W4_2,
+            "4-3" => Self::W4_3,
+            "4-4" => Self::W4_4,
+            "5-1" => Self::W5_1,
+            "5-2" => Self::W5_2,
+            "5-3" => Self::W5_3,
+            "5-4" => Self::W5_4,
+            "6-1" => Self::W6_1,
+            "6-2" => Self::W6_2,
+            "6-3" => Self::W6_3,
+            "6-4" => Self::W6_4,
+            "7-1" => Self::W7_1,
+            "7-2" => Self::W7_2,
+            "7-3" => Self::W7_3,
+            "7-4" => Self::W7_4,
+            "8-1" => Self::W8_1,
+            "8-2" => Self::W8_2,
+            "8-3" => Self::W8_3,
+            "8-4" => Self::W8_4,
+            _ => panic!("unknown level name: {}", name),
+        }
+    }
+
     /// Get the header, object, and enemy offsets for a given level.
     pub fn get_offsets(&self) -> (Offset, Offset, Offset) {
         match self {
